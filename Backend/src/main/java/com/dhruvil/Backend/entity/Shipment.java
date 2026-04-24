@@ -1,5 +1,6 @@
 package com.dhruvil.Backend.entity;
 
+import com.dhruvil.Backend.entity.type.BidStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;

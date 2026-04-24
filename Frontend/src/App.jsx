@@ -12,6 +12,7 @@ import CreateShipment from "./pages/Shipper/CreateShipment";
 import MyShipment from "./pages/Shipper/MyShipment";
 import ViewBids from "./pages/Shipper/ViewBids";
 import CarrierMarketplace from "./pages/Carrier/CarrierMarketplace";
+import ShipperBids from "./pages/Shipper/ShipperBids";
 
 const App = () => {
   return (
@@ -31,9 +32,9 @@ const App = () => {
         {/* ============ SHIPPER ============ */}
         <Route path="/shipper/create-shipment" element={<CreateShipment />} />
         <Route path="/shipper/my-shipments" element={<MyShipment />} />
-        <Route path="/shipper/bids/:id" element={<ViewBids />} />
+        <Route path="/shipper/bids/:shipmentId" element={<ShipperBids />} />
 
-        {/* ============ SHIPPER ============ */}
+        {/* ============ CARRIER ============ */}
         <Route path="/carrier/marketplace" element={<CarrierMarketplace />} />
       </Routes>
     </SignupProvider>

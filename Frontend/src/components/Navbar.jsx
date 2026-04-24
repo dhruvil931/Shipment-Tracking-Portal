@@ -33,7 +33,7 @@ const NAV_ITEMS = {
   ],
   CARRIER: [
     { label: "Marketplace", path: "/carrier/marketplace" },
-    { label: "My Bids", path: "/carrier/bids" },
+    { label: "My Bids", path: "/carrier/my-bids" },
     { label: "Active Jobs", path: "/carrier/jobs" },
     { label: "Support", path: "/support" },
   ],

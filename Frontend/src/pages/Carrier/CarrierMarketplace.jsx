@@ -5,11 +5,11 @@ const CarrierMarketplace = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 track which card is active
   const [activeBidId, setActiveBidId] = useState(null);
 
-  // 🔥 store inputs per shipment
   const [bidValues, setBidValues] = useState({});
+
+  const [myBids, setMyBids] = useState({});
 
   useEffect(() => {
     const fetchShipments = async () => {
@@ -23,7 +23,8 @@ const CarrierMarketplace = () => {
         const data = res.data;
 
         if (Array.isArray(data)) setShipments(data);
-        else if (data && Array.isArray(data.content)) setShipments(data.content);
+        else if (data && Array.isArray(data.content))
+          setShipments(data.content);
         else if (data && typeof data === "object") setShipments([data]);
         else setShipments([]);
       } catch (err) {
@@ -35,6 +36,29 @@ const CarrierMarketplace = () => {
     };
 
     fetchShipments();
+  }, []);
+
+  useEffect(() => {
+    const fetchMyBids = async () => {
+      try {
+        const res = await api.get("/carrier/my-bids", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        const map = {};
+        res.data.forEach((b) => {
+          map[b.shipmentId] = true;
+        });
+
+        setMyBids(map);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchMyBids();
   }, []);
 
   // 🔥 handle input change
@@ -63,20 +87,16 @@ const CarrierMarketplace = () => {
 
     try {
       await api.post(
-        `/bids/submit/${shipmentId}`,
+        `/carrier/bids/submit/${shipmentId}`,
         { amount: Number(amount) },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       alert("Bid submitted!");
-
-      // reset
-      setActiveBidId(null);
-      setBidValues((prev) => ({ ...prev, [shipmentId]: "" }));
     } catch (err) {
       console.log(err);
       alert("Failed to submit bid");
@@ -86,7 +106,6 @@ const CarrierMarketplace = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6 mt-17">
       <div className="max-w-5xl mx-auto">
-        
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-extrabold opacity-85">
@@ -98,7 +117,6 @@ const CarrierMarketplace = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-xl p-6">
-          
           {loading ? (
             <p className="text-gray-500 font-semibold">Loading...</p>
           ) : shipments.length === 0 ? (
@@ -117,7 +135,6 @@ const CarrierMarketplace = () => {
                       isActive ? "shadow-xl scale-[1.01]" : "hover:shadow-lg"
                     }`}
                   >
-                    
                     {/* Top */}
                     <div>
                       <div className="flex justify-between items-center mb-3">
@@ -132,7 +149,6 @@ const CarrierMarketplace = () => {
 
                       {/* Info */}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm font-semibold text-gray-600">
-                        
                         <div className="bg-white rounded-lg p-3 shadow-sm">
                           <p className="text-xs text-gray-400">Weight</p>
                           <p className="text-base font-bold text-gray-800">
@@ -155,9 +171,7 @@ const CarrierMarketplace = () => {
                             type="number"
                             placeholder="Enter your bid amount (₹)"
                             value={bidValues[s.id] || ""}
-                            onChange={(e) =>
-                              handleChange(s.id, e.target.value)
-                            }
+                            onChange={(e) => handleChange(s.id, e.target.value)}
                             className="w-full p-2 border rounded-lg"
                           />
                         </div>
@@ -168,16 +182,22 @@ const CarrierMarketplace = () => {
                     <div className="flex justify-end mt-4">
                       <button
                         onClick={() => handleBidClick(s.id)}
-                        className={`px-5 py-2 rounded-lg cursor-pointer font-semibold transition-all ${
-                          isActive
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-green-600 text-white hover:bg-green-700"
+                        disabled={myBids[s.id]}
+                        className={`px-5 py-2 rounded-lg font-semibold transition-all ${
+                          myBids[s.id]
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : isActive
+                              ? "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-green-600 text-white hover:bg-green-700"
                         }`}
                       >
-                        {isActive ? "Confirm Bid" : "Place Bid"}
+                        {myBids[s.id]
+                          ? "Already Bid"
+                          : isActive
+                            ? "Confirm Bid"
+                            : "Place Bid"}
                       </button>
                     </div>
-
                   </div>
                 );
               })}
