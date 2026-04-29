@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -26,6 +28,20 @@ public class Shipment {
     private double height;
 
     private String status; // OPEN, IN_TRANSIT, DELIVERED
+
+    @Column(nullable = true)
+    private Double currentLat;
+
+    @Column(nullable = true)
+    private Double currentLng;
+
+    @Column(nullable = true)
+    private LocalDateTime lastUpdated;
+
+    @Column(nullable = true)
+    private Long assignedCarrierId;
+
+    private boolean archived = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

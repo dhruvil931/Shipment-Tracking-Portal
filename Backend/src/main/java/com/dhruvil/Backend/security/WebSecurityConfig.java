@@ -26,25 +26,25 @@ public class WebSecurityConfig {
         httpSecurity
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrfConfig -> csrfConfig.disable())
-                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sessionConfig ->
+                        sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/public/**", "/auth/**").permitAll()
+                        // Public routes — no token needed
+                        .requestMatchers("/public/**", "/auth/**").permitAll()
 
-                        // Shipper-only URL paths
-                        .requestMatchers("/api/v1/shipper/**").hasRole("SHIPPER")
+                        // Shipper routes — must match ShipperController @RequestMapping("/shipper")
+                        .requestMatchers("/shipper/**").hasRole("SHIPPER")
 
-                        // Carrier-only URL paths
-                        .requestMatchers("/api/marketplace/**").hasRole("CARRIER")
-                        .requestMatchers("/api/bids/submit/**").hasRole("CARRIER")
-                        .requestMatchers("/api/gps/**").hasRole("CARRIER")
+                        // Carrier routes — must match CarrierController @RequestMapping("/carrier")
+                        .requestMatchers("/carrier/**").hasRole("CARRIER")
 
-                        // Customer-only URL paths
-                        .requestMatchers("/api/tracking/shipment/**").hasRole("CUSTOMER")
-                        .requestMatchers("/api/orders/**").hasRole("CUSTOMER")
+                        // Tracking — any logged-in user (shipper, carrier, customer)
+                        .requestMatchers("/tracking/**").permitAll()
 
-                                .anyRequest().authenticated()
+                        // Everything else requires login
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);;
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 

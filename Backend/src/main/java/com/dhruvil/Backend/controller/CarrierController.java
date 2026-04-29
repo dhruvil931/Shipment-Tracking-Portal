@@ -2,6 +2,7 @@ package com.dhruvil.Backend.controller;
 
 import com.dhruvil.Backend.dto.BidRequest;
 import com.dhruvil.Backend.entity.Bid;
+import com.dhruvil.Backend.entity.Shipment;
 import com.dhruvil.Backend.entity.User;
 import com.dhruvil.Backend.entity.type.BidStatus;
 import com.dhruvil.Backend.repository.BidRepository;
@@ -11,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/carrier")
@@ -23,7 +26,7 @@ public class CarrierController {
 
     @GetMapping("/marketplace")
     public ResponseEntity<?> getOpenShipment() {
-        return ResponseEntity.ok(shipmentRepository.findByStatus("OPEN"));
+        return ResponseEntity.ok(shipmentRepository.findByStatusAndArchivedFalse("OPEN"));
     }
 
     @PostMapping("/bids/submit/{shipmentId}")
@@ -59,5 +62,40 @@ public class CarrierController {
         List<Bid> bids = bidRepository.findByCarrierId(carrierId);
 
         return ResponseEntity.ok(bids);
+    }
+
+    @PostMapping("/update-location/{shipmentId}")
+    public ResponseEntity<?> updateLocation(
+            @PathVariable Long shipmentId,
+            @RequestBody Map<String, Double> body,
+            Authentication authentication
+    ) {
+        Shipment s = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new RuntimeException("Shipment not found"));
+
+        User user = (User) authentication.getPrincipal();
+
+        if (!"IN_TRANSIT".equals(s.getStatus())) {
+            return ResponseEntity.badRequest().body("Shipment not active");
+        }
+
+        // Null-safe ownership check
+        if (s.getAssignedCarrierId() == null || !s.getAssignedCarrierId().equals(user.getId())) {
+            return ResponseEntity.status(403).body("Not your shipment");
+        }
+
+        Double lat = body.get("lat");
+        Double lng = body.get("lng");
+
+        if (lat == null || lng == null) {
+            return ResponseEntity.badRequest().body("Invalid coordinates");
+        }
+
+        s.setCurrentLat(lat);
+        s.setCurrentLng(lng);
+        s.setLastUpdated(LocalDateTime.now());
+        shipmentRepository.save(s);
+
+        return ResponseEntity.ok("Updated");
     }
 }

@@ -10,9 +10,10 @@ import { SignupProvider } from "./context/SignupContext";
 import Navbar from "./components/Navbar";
 import CreateShipment from "./pages/Shipper/CreateShipment";
 import MyShipment from "./pages/Shipper/MyShipment";
-import ViewBids from "./pages/Shipper/ViewBids";
 import CarrierMarketplace from "./pages/Carrier/CarrierMarketplace";
 import ShipperBids from "./pages/Shipper/ShipperBids";
+import MyBids from "./pages/Carrier/MyBids";
+import TrackShipment from "./pages/TrackShipment";
 
 const App = () => {
   return (
@@ -36,6 +37,9 @@ const App = () => {
 
         {/* ============ CARRIER ============ */}
         <Route path="/carrier/marketplace" element={<CarrierMarketplace />} />
+        <Route path="/carrier/my-bids" element={<MyBids />} />
+
+        <Route path="/track/:shipmentId" element={<TrackShipment />} />
       </Routes>
     </SignupProvider>
   );

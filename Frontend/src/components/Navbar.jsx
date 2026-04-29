@@ -29,18 +29,14 @@ const NAV_ITEMS = {
   SHIPPER: [
     { label: "Create Shipment", path: "/shipper/create-shipment" },
     { label: "My Shipments", path: "/shipper/my-shipments" },
-    { label: "Track Shipment", path: "/shipper/track-shipment" },
   ],
   CARRIER: [
     { label: "Marketplace", path: "/carrier/marketplace" },
     { label: "My Bids", path: "/carrier/my-bids" },
-    { label: "Active Jobs", path: "/carrier/jobs" },
     { label: "Support", path: "/support" },
   ],
   CUSTOMER: [
     { label: "Track Shipment", path: "/track" },
-    { label: "My Orders", path: "/customer/orders" },
-    { label: "Alerts", path: "/customer/alerts" },
     { label: "Support", path: "/support" },
   ],
 };
