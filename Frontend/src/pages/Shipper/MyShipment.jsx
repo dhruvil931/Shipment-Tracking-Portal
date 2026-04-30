@@ -1,141 +1,95 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
 
 const MyShipment = () => {
   const [shipments, setShipments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchShipments = async () => {
+    const fetch = async () => {
       try {
         const res = await api.get("/shipper/my-shipments", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-
-        const data = res.data;
-
-        if (Array.isArray(data)) {
-          setShipments(data);
-        } else if (data && Array.isArray(data.content)) {
-          setShipments(data.content);
-        } else if (data && Array.isArray(data.data)) {
-          setShipments(data.data);
-        } else if (data && typeof data === "object") {
-          setShipments([data]);
-        } else {
-          setShipments([]);
-        }
-
+        setShipments(res.data); // newest first from backend
       } catch (err) {
         console.log(err);
-        setShipments([]);
-      } finally {
-        setLoading(false);
       }
     };
-
-    fetchShipments();
+    fetch();
   }, []);
 
-  const handleViewBids = (id) => {
-    navigate(`/shipper/bids/${id}`);
+  const statusStyle = (status) => {
+    if (status === "OPEN") return "bg-yellow-100 text-yellow-700";
+    if (status === "IN_TRANSIT") return "bg-blue-100 text-blue-700";
+    if (status === "DELIVERED") return "bg-green-100 text-green-700";
+    return "bg-gray-100 text-gray-600";
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 mt-17">
+    <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-5xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-extrabold opacity-85">
-            My Shipments
-          </h1>
-          <p className="text-gray-500 font-semibold">
-            Track and manage all your shipments
-          </p>
-        </div>
+        <h1 className="text-3xl font-extrabold opacity-85 mb-6">
+          My Shipments
+        </h1>
 
-        {/* Card Container */}
-        <div className="bg-white rounded-xl shadow-xl p-6">
-          
-          {loading ? (
-            <p className="text-gray-500 font-semibold">Loading...</p>
-          ) : !Array.isArray(shipments) || shipments.length === 0 ? (
-            <p className="text-gray-500 font-semibold">
-              No shipments found
-            </p>
-          ) : (
-            <div className="grid gap-4">
-              
-              {shipments.map((s) => (
+        {shipments.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-xl p-10 text-center">
+            <p className="text-gray-500 font-semibold">No shipments yet</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {shipments.map((s) => {
+              const isDelivered = s.status === "DELIVERED";
+
+              return (
                 <div
                   key={s.id}
-                  className="p-5 rounded-xl border border-slate-200 bg-slate-50 hover:shadow-lg transition-all flex flex-col justify-between"
+                  className={`bg-white rounded-xl shadow-xl p-6 transition
+                    ${isDelivered ? "opacity-60" : "hover:shadow-2xl"}`}
                 >
-                  
-                  {/* TOP CONTENT */}
-                  <div>
-                    {/* Route + Status */}
-                    <div className="flex justify-between items-center mb-3">
-                      <h2 className="font-bold text-lg">
-                        {s.origin} → {s.destination}
-                      </h2>
-
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                          s.status === "OPEN"
-                            ? "bg-green-100 text-green-700"
-                            : s.status === "IN_TRANSIT"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-200 text-gray-700"
-                        }`}
-                      >
-                        {s.status}
-                      </span>
-                    </div>
-
-                    {/* INFO GRID */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm font-semibold text-gray-600">
-                      
-                      {/* Weight */}
-                      <div className="bg-white rounded-lg p-3 shadow-sm">
-                        <p className="text-xs text-gray-400">Weight</p>
-                        <p className="text-base font-bold text-gray-800">
-                          {s.weight} kg
-                        </p>
-                      </div>
-
-                      {/* Dimensions */}
-                      <div className="bg-white rounded-lg p-3 shadow-sm col-span-2 md:col-span-1">
-                        <p className="text-xs text-gray-400">Dimensions</p>
-                        <p className="text-base font-bold text-gray-800 tracking-wide">
-                          {s.length} × {s.width} × {s.height}
-                          <span className="text-sm text-gray-500"> cm</span>
-                        </p>
-                      </div>
-
-                    </div>
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <h2 className="text-lg font-bold text-gray-800">
+                      Shipment #{s.id}
+                    </h2>
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${statusStyle(s.status)}`}
+                    >
+                      {s.status}
+                    </span>
                   </div>
 
-                  <div className="flex justify-end mt-4">
+                  {/* Info */}
+                  <div className="text-sm text-gray-600 space-y-1 font-semibold">
+                    <p>From: {s.origin}</p>
+                    <p>To: {s.destination}</p>
+                    <p>Weight: {s.weight} kg</p>
+                  </div>
+
+                  {/* Actions — frozen if delivered */}
+                  {isDelivered ? (
+                    <div className="mt-5 flex items-center gap-2 text-green-600 font-semibold text-sm">
+                      <span>✓</span>
+                      <span>Delivered — no further actions</span>
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => handleViewBids(s.id)}
-                      className="bg-blue-600 text-white cursor-pointer px-5 py-2 rounded-lg font-semibold shadow-[0px_0px_12px_-4px_#0200FF] hover:bg-blue-700 hover:shadow-[0px_0px_18px_-4px_#0200FF] active:scale-[0.97] transition-all"
+                      onClick={() => navigate(`/shipper/bids/${s.id}`)}
+                      className="mt-5 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold
+                      shadow-[0px_0px_16px_-4px_#0200FF]
+                      hover:bg-blue-700 hover:shadow-[0px_0px_22px_-4px_#0200FF]
+                      active:scale-[0.98] transition-all duration-200 cursor-pointer"
                     >
                       View Bids
                     </button>
-                  </div>
-
+                  )}
                 </div>
-              ))}
-
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

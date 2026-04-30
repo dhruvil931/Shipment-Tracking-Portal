@@ -8,21 +8,26 @@ const ShipperBids = () => {
 
   const [bids, setBids] = useState([]);
 
+  const [shipmentStatus, setShipmentStatus] = useState(null);
+
   const navigate = useNavigate();
 
   const fetchBids = async () => {
     try {
-      const res = await api.get(`/shipper/bids/${shipmentId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      setBids(res.data);
+      const [bidsRes, trackRes] = await Promise.all([
+        api.get(`/shipper/bids/${shipmentId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        api.get(`/tracking/track/${shipmentId}`), // public, no auth needed
+      ]);
+      setBids(bidsRes.data);
+      setShipmentStatus(trackRes.data.status);
     } catch (err) {
       console.log(err);
     }
   };
+
+  const isDelivered = shipmentStatus === "DELIVERED";
 
   useEffect(() => {
     fetchBids();
@@ -109,20 +114,16 @@ const ShipperBids = () => {
                       {bid.status}
                     </span>
                   </div>
-
                   {/* Info */}
                   <div className="text-sm text-gray-600 space-y-1 font-semibold">
                     <p>Vehicle: {carrier?.vehicleType}</p>
                     <p>Region: {carrier?.region}</p>
                   </div>
-
                   {/* Price */}
                   <div className="mt-4 text-2xl font-extrabold text-blue-600">
                     ₹{bid.amount}
                   </div>
-
                   {/* ACTIONS */}
-
                   {/* Accept Button */}
                   {bid.status === "PENDING" && (
                     <button
@@ -130,25 +131,22 @@ const ShipperBids = () => {
                       className="mt-5 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold 
                     shadow-[0px_0px_16px_-4px_#0200FF]
                     hover:bg-blue-700 hover:shadow-[0px_0px_22px_-4px_#0200FF]
-                    active:scale-[0.98] transition-all duration-200"
+                    active:scale-[0.98] transition-all duration-200 cursor-pointer"
                     >
                       Accept Bid
                     </button>
                   )}
-
                   {/* Track Button */}
-                  {bid.status === "ACCEPTED" && (
+                  {bid.status === "ACCEPTED" && !isDelivered && (
                     <div className="mt-5 flex flex-col gap-3">
                       <button
                         onClick={() => navigate(`/track/${shipmentId}`)}
-                        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold 
+                        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold
       shadow-[0px_0px_16px_-4px_#0200FF]
-      hover:bg-blue-700 hover:shadow-[0px_0px_22px_-4px_#0200FF]
-      active:scale-[0.98] transition-all duration-200 cursor-pointer"
+      hover:bg-blue-700 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                       >
                         Track Shipment
                       </button>
-
                       <button
                         onClick={() => handleComplete(shipmentId)}
                         className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold
@@ -158,7 +156,12 @@ const ShipperBids = () => {
                       </button>
                     </div>
                   )}
-
+                  {bid.status === "ACCEPTED" && isDelivered && (
+                    <div className="mt-5 text-green-600 font-semibold text-sm flex items-center gap-2">
+                      <span>✓</span>
+                      <span>Shipment delivered</span>
+                    </div>
+                  )}
                   {/* Feedback */}
                   {bid.status === "REJECTED" && (
                     <p className="mt-4 text-sm text-red-400 font-medium">

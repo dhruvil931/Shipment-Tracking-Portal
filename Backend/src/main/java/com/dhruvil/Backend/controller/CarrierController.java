@@ -26,7 +26,9 @@ public class CarrierController {
 
     @GetMapping("/marketplace")
     public ResponseEntity<?> getOpenShipment() {
-        return ResponseEntity.ok(shipmentRepository.findByStatusAndArchivedFalse("OPEN"));
+        return ResponseEntity.ok(
+                shipmentRepository.findByStatusAndArchivedFalseOrderByIdDesc("OPEN")
+        );
     }
 
     @PostMapping("/bids/submit/{shipmentId}")
@@ -55,13 +57,19 @@ public class CarrierController {
 
     @GetMapping("/my-bids")
     public ResponseEntity<?> getMyBids(Authentication authentication) {
-
         User user = (User) authentication.getPrincipal();
         Long carrierId = user.getId();
 
         List<Bid> bids = bidRepository.findByCarrierId(carrierId);
 
-        return ResponseEntity.ok(bids);
+        // Filter out bids for archived/delivered shipments
+        List<Bid> activeBids = bids.stream().filter(bid -> {
+            return shipmentRepository.findById(bid.getShipmentId())
+                    .map(s -> !s.isArchived())
+                    .orElse(false);
+        }).collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(activeBids);
     }
 
     @PostMapping("/update-location/{shipmentId}")

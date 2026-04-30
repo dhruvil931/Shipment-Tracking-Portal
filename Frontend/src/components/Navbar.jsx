@@ -36,7 +36,6 @@ const NAV_ITEMS = {
     { label: "Support", path: "/support" },
   ],
   CUSTOMER: [
-    { label: "Track Shipment", path: "/track" },
     { label: "Support", path: "/support" },
   ],
 };

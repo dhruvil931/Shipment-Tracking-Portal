@@ -87,7 +87,6 @@ public class ShipperController {
         return ResponseEntity.ok("Accepted");
     }
 
-    // ✅ Shipper marks shipment as delivered — archives it from all lists
     @Transactional
     @PostMapping("/complete/{shipmentId}")
     public ResponseEntity<?> completeShipment(
@@ -97,12 +96,13 @@ public class ShipperController {
         Shipment s = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new RuntimeException("Shipment not found"));
 
-        if (!"IN_TRANSIT".equals(s.getStatus())) {
-            return ResponseEntity.badRequest().body("Shipment is not in transit");
+        // Accept both OPEN and IN_TRANSIT just in case DB is inconsistent
+        if ("DELIVERED".equals(s.getStatus())) {
+            return ResponseEntity.badRequest().body("Already delivered");
         }
 
         s.setStatus("DELIVERED");
-        s.setArchived(true);   // hides from all list views, kept in DB
+        s.setArchived(true);
         shipmentRepository.save(s);
 
         return ResponseEntity.ok("Shipment marked as delivered");

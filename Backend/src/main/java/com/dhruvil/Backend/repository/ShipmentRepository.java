@@ -14,4 +14,10 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findByUserAndArchivedFalse(User user);
 
     List<Shipment> findByStatusAndArchivedFalse(String status);
+
+    // Newest first (id DESC), excludes nothing — shipper sees all including delivered
+    List<Shipment> findByUserOrderByIdDesc(User user);
+
+    // Carrier marketplace — only OPEN, not archived, newest first
+    List<Shipment> findByStatusAndArchivedFalseOrderByIdDesc(String status);
 }

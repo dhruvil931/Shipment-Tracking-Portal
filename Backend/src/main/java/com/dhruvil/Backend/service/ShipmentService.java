@@ -42,8 +42,6 @@ public class ShipmentService {
     public List<Shipment> getMyShipmentByUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Only return non-archived shipments
-        return shipmentRepository.findByUserAndArchivedFalse(user);
+        return shipmentRepository.findByUserOrderByIdDesc(user);
     }
 }
