@@ -2,11 +2,14 @@ package com.dhruvil.Backend.controller;
 
 import com.dhruvil.Backend.dto.BidRequest;
 import com.dhruvil.Backend.entity.Bid;
+import com.dhruvil.Backend.entity.CarrierProfile;
 import com.dhruvil.Backend.entity.Shipment;
 import com.dhruvil.Backend.entity.User;
 import com.dhruvil.Backend.entity.type.BidStatus;
 import com.dhruvil.Backend.repository.BidRepository;
+import com.dhruvil.Backend.repository.CarrierRepository;
 import com.dhruvil.Backend.repository.ShipmentRepository;
+import com.dhruvil.Backend.service.CarrierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +26,8 @@ public class CarrierController {
 
     private final ShipmentRepository shipmentRepository;
     private final BidRepository bidRepository;
+    private final CarrierService carrierService;
+    private final CarrierRepository repo;
 
     @GetMapping("/marketplace")
     public ResponseEntity<?> getOpenShipment() {
@@ -105,5 +110,15 @@ public class CarrierController {
         shipmentRepository.save(s);
 
         return ResponseEntity.ok("Updated");
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication auth) {
+        User user = (User) auth.getPrincipal();
+
+        CarrierProfile profile = repo.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        return ResponseEntity.ok(profile);
     }
 }

@@ -15,6 +15,8 @@ import ShipperBids from "./pages/Shipper/ShipperBids";
 import MyBids from "./pages/Carrier/MyBids";
 import TrackShipment from "./pages/TrackShipment";
 import ShipperProfile from "./pages/Shipper/ShipperProfile";
+import CarrierProfile from "./pages/Carrier/CarrierProfile";
+import CustomerProfile from "./pages/Customer/CustomerProfile";
 
 const App = () => {
   return (
@@ -40,6 +42,10 @@ const App = () => {
         {/* ============ CARRIER ============ */}
         <Route path="/carrier/marketplace" element={<CarrierMarketplace />} />
         <Route path="/carrier/my-bids" element={<MyBids />} />
+        <Route path="/carrier/profile" element={<CarrierProfile />} />
+
+        {/* ============ CUSTOMER ============ */}
+        <Route path="/customer/profile" element={<CustomerProfile />} />
 
         <Route path="/track/:shipmentId" element={<TrackShipment />} />
       </Routes>
