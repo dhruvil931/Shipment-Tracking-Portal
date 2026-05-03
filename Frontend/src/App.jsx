@@ -17,6 +17,7 @@ import TrackShipment from "./pages/TrackShipment";
 import ShipperProfile from "./pages/Shipper/ShipperProfile";
 import CarrierProfile from "./pages/Carrier/CarrierProfile";
 import CustomerProfile from "./pages/Customer/CustomerProfile";
+import Support from "./pages/Support"
 
 const App = () => {
   return (
@@ -48,6 +49,7 @@ const App = () => {
         <Route path="/customer/profile" element={<CustomerProfile />} />
 
         <Route path="/track/:shipmentId" element={<TrackShipment />} />
+        <Route path="/support" element={<Support />} />
       </Routes>
     </SignupProvider>
   );

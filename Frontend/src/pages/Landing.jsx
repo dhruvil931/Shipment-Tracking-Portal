@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -98,6 +98,20 @@ const featureCards = [
 const Landing = () => {
   const [trackingId, setTrackingId] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scroll to stakeholder section if ?section=stakeholders is in the URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("section") === "stakeholders") {
+      const el = document.getElementById("how-it-works");
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, [location.search]);
 
   const handleTrack = () => {
     const id = trackingId.trim();
@@ -228,7 +242,11 @@ const Landing = () => {
       </section>
 
       {/* ================= STAKEHOLDER SECTION ================= */}
-      <section className="bg-slate-100 relative overflow-hidden py-24 px-6">
+      {/* ↓ id="how-it-works" enables smooth scroll from the Navbar */}
+      <section
+        id="how-it-works"
+        className="bg-slate-100 relative overflow-hidden py-24 px-6"
+      >
         <div
           className="absolute inset-0 pointer-events-none"
           style={{

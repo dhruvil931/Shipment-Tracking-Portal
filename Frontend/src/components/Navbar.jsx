@@ -5,9 +5,9 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-// ── utils (moved from inline) ────────────────────────────────────────────────
+// ── utils ────────────────────────────────────────────────────────────────────
 const getPayload = () => {
   try {
     const token = localStorage.getItem("token");
@@ -29,53 +29,48 @@ const NAV_ITEMS = {
   SHIPPER: [
     { label: "Create Shipment", path: "/shipper/create-shipment" },
     { label: "My Shipments", path: "/shipper/my-shipments" },
+    { label: "Support", path: "/support" },
   ],
   CARRIER: [
     { label: "Marketplace", path: "/carrier/marketplace" },
     { label: "My Bids", path: "/carrier/my-bids" },
     { label: "Support", path: "/support" },
   ],
-  CUSTOMER: [
-    { label: "Support", path: "/support" },
-  ],
+  CUSTOMER: [{ label: "Support", path: "/support" }],
 };
 
 const PUBLIC_NAV = [
   { label: "Home", path: "/" },
-  { label: "How It Works", path: "/how-it-works" },
+  { label: "How It Works", path: "/#how-it-works" }, // special anchor path
   { label: "Support", path: "/support" },
 ];
 
 // ── component ────────────────────────────────────────────────────────────────
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [menu, setMenu] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
-
-  // NEW: auth state
-  const [user, setUser] = useState(null); // email from JWT sub
-  const [role, setRole] = useState(null); // "SHIPPER" | "CARRIER" | "CUSTOMER"
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
     const readAuth = () => {
       const payload = getPayload();
       if (payload && !isTokenExpired(payload)) {
-        setUser(payload.sub); // email stored as subject in your AuthUtil
-        setRole(payload.role); // role claim you set in AuthUtil.generateAccessToken()
+        setUser(payload.sub);
+        setRole(payload.role);
       } else {
         localStorage.removeItem("token");
         setUser(null);
         setRole(null);
       }
     };
-
     readAuth();
-    // login page dispatches this event after saving the token
     window.addEventListener("authChange", readAuth);
     return () => window.removeEventListener("authChange", readAuth);
   }, []);
 
-  // existing scroll logic — fixed lastScroll inside useEffect
   useEffect(() => {
     let lastScroll = 0;
     const handleScroll = () => {
@@ -91,13 +86,28 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // NEW: logout handler
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setRole(null);
     window.dispatchEvent(new Event("authChange"));
     navigate("/");
+  };
+  
+  const handleNavClick = (path, closeMenu = false) => {
+    if (closeMenu) setMenu(false);
+
+    if (path === "/#how-it-works") {
+      if (location.pathname === "/") {
+        const el = document.getElementById("how-it-works");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        navigate("/?section=stakeholders");
+      }
+      return;
+    }
+
+    navigate(path);
   };
 
   const isLoggedIn = !!user;
@@ -110,7 +120,7 @@ const Navbar = () => {
       ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
     >
       <div className="flex justify-between items-center h-15 px-6 lg:px-14 lato relative">
-        {/* Logo — unchanged */}
+        {/* Logo */}
         <div
           className="flex gap-4 cursor-pointer items-center"
           onClick={() => navigate("/")}
@@ -125,19 +135,18 @@ const Navbar = () => {
           </span>
         </div>
 
-        {/* Desktop Menu — same look, items now come from navItems */}
+        {/* Desktop Menu */}
         <div className="hidden lg:flex gap-15">
           {navItems.map(({ label, path }) => (
             <span
               key={label}
               className="cursor-pointer hover:underline"
-              onClick={() => navigate(path)}
+              onClick={() => handleNavClick(path)}
             >
               {label}
             </span>
           ))}
 
-          {/* Login/Register  →  Profile + Logout once logged in */}
           {isLoggedIn ? (
             <>
               <span
@@ -163,7 +172,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Button — unchanged */}
+        {/* Mobile Button */}
         <div
           className="lg:hidden cursor-pointer text-xl"
           onClick={() => setMenu(!menu)}
@@ -171,7 +180,7 @@ const Navbar = () => {
           <FontAwesomeIcon icon={menu ? faXmark : faBars} />
         </div>
 
-        {/* Mobile Menu — same look, items now come from navItems */}
+        {/* Mobile Menu */}
         <div
           className={`absolute top-full left-0 w-full bg-white shadow-md z-40 
           flex flex-col items-center gap-6 py-6 lg:hidden
@@ -182,16 +191,12 @@ const Navbar = () => {
             <span
               key={label}
               className="cursor-pointer"
-              onClick={() => {
-                navigate(path);
-                setMenu(false);
-              }}
+              onClick={() => handleNavClick(path, true)}
             >
               {label}
             </span>
           ))}
 
-          {/* Login/Register  →  Profile + Logout once logged in */}
           {isLoggedIn ? (
             <>
               <span
