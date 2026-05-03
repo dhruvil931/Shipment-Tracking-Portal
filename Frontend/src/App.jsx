@@ -14,6 +14,7 @@ import CarrierMarketplace from "./pages/Carrier/CarrierMarketplace";
 import ShipperBids from "./pages/Shipper/ShipperBids";
 import MyBids from "./pages/Carrier/MyBids";
 import TrackShipment from "./pages/TrackShipment";
+import ShipperProfile from "./pages/Shipper/ShipperProfile";
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
         <Route path="/shipper/create-shipment" element={<CreateShipment />} />
         <Route path="/shipper/my-shipments" element={<MyShipment />} />
         <Route path="/shipper/bids/:shipmentId" element={<ShipperBids />} />
+        <Route path="/shipper/profile" element={<ShipperProfile />} />
 
         {/* ============ CARRIER ============ */}
         <Route path="/carrier/marketplace" element={<CarrierMarketplace />} />

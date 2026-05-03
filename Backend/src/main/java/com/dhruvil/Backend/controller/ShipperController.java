@@ -2,13 +2,10 @@ package com.dhruvil.Backend.controller;
 
 import com.dhruvil.Backend.dto.BidWithCarrierDto;
 import com.dhruvil.Backend.dto.CreateShipmentRequestDto;
-import com.dhruvil.Backend.entity.Bid;
-import com.dhruvil.Backend.entity.CarrierProfile;
-import com.dhruvil.Backend.entity.Shipment;
+import com.dhruvil.Backend.entity.*;
 import com.dhruvil.Backend.entity.type.BidStatus;
-import com.dhruvil.Backend.repository.BidRepository;
-import com.dhruvil.Backend.repository.CarrierRepository;
-import com.dhruvil.Backend.repository.ShipmentRepository;
+import com.dhruvil.Backend.entity.type.Role;
+import com.dhruvil.Backend.repository.*;
 import com.dhruvil.Backend.service.ShipmentService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -28,6 +25,8 @@ public class ShipperController {
     private final BidRepository bidRepository;
     private final CarrierRepository carrierRepository;
     private final ShipmentRepository shipmentRepository;
+    private final UserRepository userRepository;
+    private final ShipperRepository shipperRepository;
 
     @PostMapping("/create-shipment")
     public ResponseEntity<?> createShipment(
@@ -106,5 +105,19 @@ public class ShipperController {
         shipmentRepository.save(s);
 
         return ResponseEntity.ok("Shipment marked as delivered");
+    }
+
+    @GetMapping("/profile")
+    public ShipperProfile getProfile(Authentication auth) {
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!user.getRole().equals(Role.SHIPPER)) {
+            throw new RuntimeException("Access denied");
+        }
+
+        return shipperRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
     }
 }
